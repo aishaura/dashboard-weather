@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sistem Monitoring Cuaca Indonesia",
-  description: "Dashboard pemantauan cuaca real-time Indonesia dengan Windy Map dan Open-Meteo",
+  title: "Pemantau Cuaca Nusantara - Portal Meteorologi & Geofisika",
+  description: "Dashboard pemantauan cuaca real-time Indonesia dengan Windy Interactive Map, Open-Meteo, dan BMKG",
 };
 
 export default function RootLayout({
@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className="bg-bgPrimary text-textPrimary antialiased selection:bg-accentBlue selection:text-slate-900">
+    <html lang="id" className="dark" suppressHydrationWarning>
+      <body className="antialiased transition-colors duration-200 selection:bg-sky-500 selection:text-white">
         {children}
       </body>
     </html>

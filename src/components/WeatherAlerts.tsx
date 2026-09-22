@@ -1,52 +1,52 @@
 "use client";
 
 import { WeatherAlertItem } from "@/types/weather";
-import { AlertTriangle, ShieldCheck, AlertCircle } from "lucide-react";
+import { AlertTriangle, AlertCircle, Info } from "lucide-react";
 
 interface Props {
   alerts: WeatherAlertItem[];
 }
 
 export default function WeatherAlerts({ alerts }: Props) {
-  if (alerts.length === 0) {
-    return (
-      <div className="bg-bgCard border border-borderDark rounded px-4 py-2.5 flex items-center gap-3">
-        <ShieldCheck className="w-5 h-5 text-accentGreen shrink-0" />
-        <div>
-          <span className="text-xs font-semibold text-accentGreen block">Status Cuaca Terkendali</span>
-          <p className="text-xs text-textSecondary">Tidak ada peringatan dini anomali cuaca ekstrem saat ini.</p>
-        </div>
-      </div>
-    );
-  }
+  if (!alerts || alerts.length === 0) return null;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {alerts.map((alert) => {
         const isDanger = alert.type === "danger";
+        const isWarning = alert.type === "warning";
+
         return (
           <div
             key={alert.id}
-            className={`border rounded p-3 text-xs flex items-start gap-2.5 ${
+            className={`rounded-2xl border p-4 text-xs flex items-start gap-3 backdrop-blur-md transition-colors shadow-sm ${
               isDanger
-                ? "bg-slate-900 border-danger/80 text-red-100"
-                : "bg-slate-900 border-warning/80 text-amber-100"
+                ? "bg-rose-50/90 dark:bg-rose-950/25 border-rose-300 dark:border-rose-500/30 text-rose-900 dark:text-rose-200"
+                : isWarning
+                ? "bg-amber-50/90 dark:bg-amber-950/25 border-amber-300 dark:border-amber-500/30 text-amber-900 dark:text-amber-200"
+                : "bg-sky-50/90 dark:bg-sky-950/25 border-sky-300 dark:border-sky-500/30 text-sky-900 dark:text-sky-200"
             }`}
           >
             {isDanger ? (
-              <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+            ) : isWarning ? (
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             ) : (
-              <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
             )}
-            <div>
+            <div className="flex-1">
               <div
                 className={`font-semibold tracking-tight ${
-                  isDanger ? "text-danger" : "text-warning"
+                  isDanger
+                    ? "text-rose-700 dark:text-rose-300"
+                    : isWarning
+                    ? "text-amber-700 dark:text-amber-300"
+                    : "text-sky-700 dark:text-sky-300"
                 }`}
               >
                 {alert.title}
               </div>
-              <p className="text-textSecondary mt-0.5 leading-relaxed">{alert.detail}</p>
+              <p className="text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{alert.detail}</p>
             </div>
           </div>
         );

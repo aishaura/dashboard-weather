@@ -10,7 +10,9 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  CartesianGrid,
 } from "recharts";
+import { Clock, Thermometer, CloudRain, Wind } from "lucide-react";
 
 interface Props {
   data: HourlyWeather;
@@ -21,80 +23,122 @@ type ViewMode = "combo" | "temp" | "rain" | "wind";
 export default function HourlyChart({ data }: Props) {
   const [mode, setMode] = useState<ViewMode>("combo");
 
+  const currentHour = new Date().getHours();
   const chartData = data.time.slice(0, 24).map((t, i) => {
     const hourStr = t.includes("T") ? t.split("T")[1].slice(0, 5) : `${i.toString().padStart(2, "0")}:00`;
     return {
       time: hourStr,
-      temp: data.temperature_2m[i],
+      temp: Math.round(data.temperature_2m[i] * 10) / 10,
       rainProb: data.precipitation_probability[i],
-      wind: data.wind_speed_10m[i],
+      wind: Math.round(data.wind_speed_10m[i]),
       uv: data.uv_index[i],
+      isNow: i === currentHour,
     };
   });
 
+  const maxRain = Math.max(...chartData.map((d) => d.rainProb));
+  const maxTemp = Math.max(...chartData.map((d) => d.temp));
+  const peakRainHour = chartData.find((d) => d.rainProb === maxRain)?.time;
+
   return (
-    <div className="bg-bgCard border border-borderDark rounded p-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-borderDark pb-3 mb-3">
+    <div
+      className="rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] p-5 sm:p-6 backdrop-blur-md shadow-sm transition-colors"
+      id="hourly-chart"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/[0.06] pb-4 mb-4">
         <div>
-          <span className="text-[11px] uppercase tracking-wider text-textSecondary font-semibold block">
-            Prakiraan 24 Jam
-          </span>
-          <h3 className="text-sm font-semibold text-textPrimary">
-            Dinamika Suhu, Hujan & Angin
-          </h3>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+            <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white tracking-tight">
+              Prakiraan 24 Jam
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {maxRain > 50
+              ? `Peluang hujan tertinggi ${maxRain}% sekitar pukul ${peakRainHour}`
+              : `Suhu maksimum mencapai ${maxTemp}°C dalam 24 jam ke depan`}
+          </p>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-900 p-1 border border-borderDark rounded text-xs">
+        {/* Mode Segmented Controls */}
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06] text-xs self-start sm:self-auto">
           <button
             onClick={() => setMode("combo")}
-            className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-              mode === "combo" ? "bg-slate-800 text-accentBlue" : "text-textSecondary hover:text-textPrimary"
+            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+              mode === "combo"
+                ? "bg-white dark:bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-slate-200 dark:border-sky-400/30 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Gabungan
+            Semua
           </button>
           <button
             onClick={() => setMode("temp")}
-            className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-              mode === "temp" ? "bg-slate-800 text-accentBlue" : "text-textSecondary hover:text-textPrimary"
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium transition ${
+              mode === "temp"
+                ? "bg-white dark:bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-slate-200 dark:border-sky-400/30 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Suhu
+            <Thermometer className="w-3 h-3" />
+            <span>Suhu</span>
           </button>
           <button
             onClick={() => setMode("rain")}
-            className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-              mode === "rain" ? "bg-slate-800 text-accentBlue" : "text-textSecondary hover:text-textPrimary"
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium transition ${
+              mode === "rain"
+                ? "bg-white dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-slate-200 dark:border-blue-400/30 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Hujan
+            <CloudRain className="w-3 h-3" />
+            <span>Hujan</span>
           </button>
           <button
             onClick={() => setMode("wind")}
-            className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-              mode === "wind" ? "bg-slate-800 text-accentBlue" : "text-textSecondary hover:text-textPrimary"
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium transition ${
+              mode === "wind"
+                ? "bg-white dark:bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-slate-200 dark:border-teal-400/30 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            Angin
+            <Wind className="w-3 h-3" />
+            <span>Angin</span>
           </button>
         </div>
       </div>
 
-      <div className="w-full h-56">
+      {/* Chart container */}
+      <div className="w-full h-60 sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <ComposedChart data={chartData} margin={{ top: 15, right: 10, left: -22, bottom: 5 }}>
+            <defs>
+              <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0284c7" stopOpacity={0.35} />
+                <stop offset="90%" stopColor="#0284c7" stopOpacity={0.0} />
+              </linearGradient>
+              <linearGradient id="windGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0d9488" stopOpacity={0.35} />
+                <stop offset="90%" stopColor="#0d9488" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(150,150,150,0.12)" vertical={false} />
+
             <XAxis
               dataKey="time"
               stroke="#94a3b8"
               fontSize={11}
               tickLine={false}
               interval={2}
+              dy={8}
             />
             <YAxis
               yAxisId="temp"
               stroke="#94a3b8"
               fontSize={11}
               tickLine={false}
+              axisLine={false}
               domain={["auto", "auto"]}
               unit="°"
               hide={mode === "rain" || mode === "wind"}
@@ -105,6 +149,7 @@ export default function HourlyChart({ data }: Props) {
               stroke="#94a3b8"
               fontSize={11}
               tickLine={false}
+              axisLine={false}
               domain={[0, 100]}
               unit="%"
               hide={mode === "temp" || mode === "wind"}
@@ -115,34 +160,43 @@ export default function HourlyChart({ data }: Props) {
               stroke="#94a3b8"
               fontSize={11}
               tickLine={false}
+              axisLine={false}
               domain={[0, "auto"]}
               unit="k"
               hide={mode !== "wind"}
             />
+
             <Tooltip
               content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="bg-slate-900 border border-borderDark p-2.5 rounded shadow-lg text-xs space-y-1">
-                    <div className="font-semibold text-textPrimary border-b border-borderDark pb-1 mb-1">
-                      Pukul {label}
+                  <div className="bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl border border-slate-200 dark:border-white/[0.12] p-3 rounded-xl shadow-xl text-xs space-y-1.5 min-w-[150px]">
+                    <div className="font-semibold text-slate-800 dark:text-white border-b border-slate-100 dark:border-white/[0.08] pb-1 flex items-center justify-between">
+                      <span>Pukul {label}</span>
+                      {d.isNow && (
+                        <span className="text-[10px] text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-500/10 px-1.5 py-0.2 rounded font-normal">
+                          Sekarang
+                        </span>
+                      )}
                     </div>
-                    <div className="text-accentBlue flex justify-between gap-4">
-                      <span>Suhu:</span>
-                      <span className="font-mono font-semibold">{d.temp}°C</span>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Thermometer className="w-3 h-3 text-sky-500" /> Suhu:
+                      </span>
+                      <span className="font-semibold text-slate-900 dark:text-white">{d.temp}°C</span>
                     </div>
-                    <div className="text-sky-300 flex justify-between gap-4">
-                      <span>Peluang Hujan:</span>
-                      <span className="font-mono font-semibold">{d.rainProb}%</span>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <CloudRain className="w-3 h-3 text-blue-500" /> Peluang Hujan:
+                      </span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">{d.rainProb}%</span>
                     </div>
-                    <div className="text-emerald-400 flex justify-between gap-4">
-                      <span>Kecepatan Angin:</span>
-                      <span className="font-mono font-semibold">{d.wind} km/j</span>
-                    </div>
-                    <div className="text-warning flex justify-between gap-4">
-                      <span>Indeks UV:</span>
-                      <span className="font-mono font-semibold">{d.uv}</span>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Wind className="w-3 h-3 text-teal-500" /> Angin:
+                      </span>
+                      <span className="font-semibold text-teal-600 dark:text-teal-400">{d.wind} km/j</span>
                     </div>
                   </div>
                 );
@@ -154,8 +208,8 @@ export default function HourlyChart({ data }: Props) {
                 yAxisId="rain"
                 dataKey="rainProb"
                 fill="#38bdf8"
-                opacity={0.35}
-                radius={[2, 2, 0, 0]}
+                opacity={0.4}
+                radius={[4, 4, 0, 0]}
               />
             )}
 
@@ -164,10 +218,11 @@ export default function HourlyChart({ data }: Props) {
                 yAxisId="temp"
                 type="monotone"
                 dataKey="temp"
-                stroke="#38bdf8"
-                strokeWidth={2}
-                fill="#38bdf8"
-                fillOpacity={0.1}
+                stroke="#0284c7"
+                strokeWidth={2.5}
+                fill="url(#tempGradient)"
+                dot={false}
+                activeDot={{ r: 5, fill: "#0284c7", stroke: "#ffffff", strokeWidth: 2 }}
               />
             )}
 
@@ -176,10 +231,11 @@ export default function HourlyChart({ data }: Props) {
                 yAxisId="wind"
                 type="monotone"
                 dataKey="wind"
-                stroke="#4ade80"
-                strokeWidth={2}
-                fill="#4ade80"
-                fillOpacity={0.1}
+                stroke="#0d9488"
+                strokeWidth={2.5}
+                fill="url(#windGradient)"
+                dot={false}
+                activeDot={{ r: 5, fill: "#0d9488", stroke: "#ffffff", strokeWidth: 2 }}
               />
             )}
           </ComposedChart>
